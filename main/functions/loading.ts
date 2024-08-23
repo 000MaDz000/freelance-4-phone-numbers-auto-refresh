@@ -1,5 +1,4 @@
 import { BrowserWindow } from "electron";
-
 export default async function loading(window: BrowserWindow) {
     await new Promise((r) => {
         window.on("ready-to-show", () => r(undefined));
