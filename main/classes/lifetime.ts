@@ -6,20 +6,6 @@ import { app } from "electron";
 import AutoLaunch from "auto-launch";
 import { execSync } from "child_process";
 
-const nonUIFileContent =
-    `[Unit]
-Description=phone numbers auto refresh
-
-[Service]
-ExecStart=${app.getPath("exe")}
-Restart=always
-User=root
-Group=root
-WorkingDirectory=/path/to/your/app
-
-[Install]
-WantedBy=multi-user.target`;
-
 
 export default class Lifetime {
     settings: SettingsType;
@@ -88,6 +74,20 @@ export default class Lifetime {
     }
 
     setToStartup() {
+        const nonUIFileContent =
+            `[Unit]
+Description=phone numbers auto refresh
+
+[Service]
+ExecStart=${app.getPath("exe")} --no-sandbox
+Restart=always
+User=root
+Group=root
+WorkingDirectory${app.getPath("exe")}
+
+[Install]
+WantedBy=multi-user.target`;
+
         if (process.platform === "linux") {
 
             const serviceFilePath = '/etc/systemd/system/phone-numbers-refresh.service';
@@ -107,6 +107,9 @@ export default class Lifetime {
                 console.log("requires super user permission to add the app to startup");
                 try {
                     execSync(`sudo echo "${nonUIFileContent}" > ${serviceFilePath}`);
+                    execSync(`sudo systemctl enable phone-numbers-refresh`);
+                    execSync(`sudo systemctl start phone-numbers-refresh`);
+                    console.log("service installed");
                 }
                 catch (err) {
                     console.log("failed to add the app to startup")
