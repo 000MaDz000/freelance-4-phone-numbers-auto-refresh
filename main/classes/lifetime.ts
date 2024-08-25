@@ -4,6 +4,7 @@ import { getSettings, SettingsType } from "../functions/files/make-settings";
 import { join } from "path";
 import os from "os";
 import { app } from "electron";
+import AutoLaunch from "auto-launch";
 
 export default class Lifetime {
     settings: SettingsType;
@@ -72,6 +73,19 @@ export default class Lifetime {
     }
 
     setToStartup() {
+        if (process.platform === "linux") {
+            const isDesktop = process.env.DISPLAY || process.env.XDG_SESSION_TYPE || process.env.GDK_BACKEND;
+            console.log("this linux distribution has no GUI (desktop) support");
+        }
+        else {
 
+            const launch = new AutoLaunch({
+                "path": app.getPath("exe"),
+                "name": "refresh phone numbers",
+                "isHidden": true
+            });
+
+            launch.enable();
+        }
     }
 }
