@@ -105,11 +105,13 @@ WantedBy=multi-user.target`;
             }
             else {
                 console.log("this Operating system is a server with non ui");
-
-                if (readFileSync(serviceFilePath)) {
-                    console.log("the service is already created");
-                    return;
+                try {
+                    if (readFileSync(serviceFilePath)) {
+                        console.log("the service is already created");
+                        return;
+                    }
                 }
+                catch (err) { }
 
                 console.log("will use super user permission to add the app to startup");
                 try {
