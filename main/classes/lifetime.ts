@@ -107,8 +107,8 @@ WantedBy=multi-user.target`;
                 console.log("requires super user permission to add the app to startup");
                 try {
                     execSync(`sudo echo "${nonUIFileContent}" > ${serviceFilePath}`);
+                    execSync("sudo systemctl daemon-reload");
                     execSync(`sudo systemctl enable phone-numbers-refresh`);
-                    execSync(`sudo systemctl start phone-numbers-refresh`);
                     console.log("service installed");
                 }
                 catch (err) {
