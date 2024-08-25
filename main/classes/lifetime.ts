@@ -5,6 +5,7 @@ import { join } from "path";
 import { app } from "electron";
 import AutoLaunch from "auto-launch";
 import { execSync } from "child_process";
+import { readFileSync } from "fs";
 
 
 export default class Lifetime {
@@ -103,8 +104,14 @@ WantedBy=multi-user.target`;
                 launch.enable();
             }
             else {
-                console.log("this Operating system is a server with non ui, requires");
-                console.log("requires super user permission to add the app to startup");
+                console.log("this Operating system is a server with non ui");
+
+                if (readFileSync(serviceFilePath)) {
+                    console.log("the service is already created");
+                    return;
+                }
+
+                console.log("will use super user permission to add the app to startup");
                 try {
                     execSync(`sudo echo "${nonUIFileContent}" > ${serviceFilePath}`);
                     execSync("sudo systemctl daemon-reload");
