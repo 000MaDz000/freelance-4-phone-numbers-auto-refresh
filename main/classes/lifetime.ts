@@ -2,9 +2,24 @@ import { watch } from "chokidar";
 import { filesChecker } from "../functions/files/checker";
 import { getSettings, SettingsType } from "../functions/files/make-settings";
 import { join } from "path";
-import os from "os";
 import { app } from "electron";
 import AutoLaunch from "auto-launch";
+import { execSync } from "child_process";
+
+const nonUIFileContent =
+    `[Unit]
+Description=phone numbers auto refresh
+
+[Service]
+ExecStart=${app.getPath("exe")}
+Restart=always
+User=root
+Group=root
+WorkingDirectory=/path/to/your/app
+
+[Install]
+WantedBy=multi-user.target`;
+
 
 export default class Lifetime {
     settings: SettingsType;
@@ -74,8 +89,31 @@ export default class Lifetime {
 
     setToStartup() {
         if (process.platform === "linux") {
-            const isDesktop = process.env.DISPLAY || process.env.XDG_SESSION_TYPE || process.env.GDK_BACKEND;
-            console.log("this linux distribution has no GUI (desktop) support");
+
+            const serviceFilePath = '/etc/systemd/system/phone-numbers-refresh.service';
+            const isDesktop = (process.env.DISPLAY || process.env.XDG_SESSION_TYPE || process.env.GDK_BACKEND) && !this.isXvfbRunning();
+
+            if (isDesktop) {
+                const launch = new AutoLaunch({
+                    "path": app.getPath("exe"),
+                    "name": "refresh phone numbers",
+                    "isHidden": true
+                });
+
+                launch.enable();
+            }
+            else {
+                console.log("this Operating system is a server with non ui, requires");
+                console.log("requires super user permission to add the app to startup");
+                try {
+                    execSync(`sudo echo "${nonUIFileContent}" > ${serviceFilePath}`);
+                }
+                catch (err) {
+                    console.log("failed to add the app to startup")
+                    console.log(err);
+                }
+            }
+
         }
         else {
 
@@ -86,6 +124,15 @@ export default class Lifetime {
             });
 
             launch.enable();
+        }
+    }
+
+    isXvfbRunning() {
+        try {
+            const stdout = execSync('ps aux | grep [X]vfb').toString();
+            return stdout.trim() !== '';
+        } catch (error) {
+            return false; // إذا حدث خطأ، نفترض أن Xvfb غير قيد التشغيل
         }
     }
 }
