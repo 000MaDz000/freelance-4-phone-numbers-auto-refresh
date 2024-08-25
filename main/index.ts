@@ -1,18 +1,33 @@
 import { app, BrowserWindow } from "electron";
 import { AREEN_LINK, QUECKLINE_LINK } from "./constants";
 import loading from "./functions/loading";
-import queckLineScraper from "./functions/queckline-scraper";
-import areenScraper from "./functions/areen-scraper";
+import Lifetime from "./classes/lifetime";
+// import queckLineScraper from "./functions/queckline-scraper";
+// import areenScraper from "./functions/areen-scraper";
+export type CompanyType = "areen" | "queckline";
 
-const createWindow = async () => {
+const createScraperWindow = async (company: CompanyType) => {
     const window = new BrowserWindow({
         show: false,
     });
 
-    window.loadURL(AREEN_LINK);
-    window.webContents.openDevTools()
+    switch (company) {
+        case "areen":
+            window.loadURL(AREEN_LINK);
+            break;
+
+        case "queckline":
+            window.loadURL(QUECKLINE_LINK);
+            break;
+    }
+
     await loading(window);
-    // scraping
+
+    return window;
 }
 
-app.whenReady().then(createWindow);
+
+
+app.whenReady().then(() => {
+    new Lifetime();
+});
